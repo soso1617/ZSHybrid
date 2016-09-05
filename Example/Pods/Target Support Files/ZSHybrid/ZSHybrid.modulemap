@@ -1,0 +1,6 @@
+framework module ZSHybrid {
+  umbrella header "ZSHybrid-umbrella.h"
+
+  export *
+  module * { export * }
+}

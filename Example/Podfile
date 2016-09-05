@@ -1,0 +1,11 @@
+use_frameworks!
+
+target 'ZSHybrid_Example' do
+  pod 'ZSHybrid', :path => '../'
+
+  target 'ZSHybrid_Tests' do
+    inherit! :search_paths
+
+    
+  end
+end

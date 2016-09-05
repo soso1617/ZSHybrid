@@ -1,0 +1,22 @@
+{
+  "name": "ZSHybrid",
+  "version": "0.1.0",
+  "summary": "A lightweight framework for hybrid interaction.",
+  "description": "A lightweight framework for hybrid interaction. The concept supports both Android and iOS. The sample code is just for iOS in objective-c.",
+  "homepage": "https://github.com/<GITHUB_USERNAME>/ZSHybrid",
+  "license": {
+    "type": "MIT",
+    "file": "LICENSE"
+  },
+  "authors": {
+    "SoSo": "eric_roger1137@hotmail.com"
+  },
+  "source": {
+    "git": "https://github.com/<GITHUB_USERNAME>/ZSHybrid.git",
+    "tag": "0.1.0"
+  },
+  "platforms": {
+    "ios": "7.0"
+  },
+  "source_files": "ZSHybrid/Classes/**/*"
+}

@@ -17,7 +17,7 @@ ZSHybrid is available through [CocoaPods](http://cocoapods.org). To install
 it, simply add the following line to your Podfile:
 
 ```ruby
-pod "ZSHybrid" :git => 'git@github.com:soso1617/ZSHybrid.git'
+pod 'ZSHybrid', :git => 'git@github.com:soso1617/ZSHybrid.git'
 ```
 
 ## Author

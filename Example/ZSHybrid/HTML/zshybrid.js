@@ -53,7 +53,7 @@ var zshybrid = zshybrid || {};
     //
     this.callbackFromMobile = function(callID, parameter, successFlag)
     {
-        if (successFlag && hybridCalls[callID].sCallback) 
+        if (successFlag && hybridCalls[callID].sCallback)
         {
             hybridCalls[callID].sCallback.call(null, parameter);
         }

@@ -17,6 +17,9 @@
  *
  *********************************************************************/
 
+@class ZSHyWebViewController;
+@class WKWebView;
+
 @interface ZSHyOperationCenter : NSObject
 
 /**
@@ -47,32 +50,33 @@
  *  @param operationsNames the exact operations names in array
  *  @param handler         the handler to handle the operations
  */
-- (void)registerOperation:(NSArray<NSString *> *)operationsNames fromHandler:(id<ZSHyOperationDelegate>)handler;
+- (void)registerOperation:(NSArray<NSString *> *)operationsNames
+              fromHandler:(id<ZSHyOperationDelegate>)handler;
 
 /**
  *  Determine whether any registered hybrid manager need to handle the url request
  *  WebViewController will be responsible for invoke this method
  *
- *  @param webView webview
- *  @param request urlRequet
+ *  @param webViewController        webviewController
+ *  @param request                  urlRequet
  *
  *  @return Y or N of handling
  */
-- (BOOL)shouldHandleUrlRequest:(NSURLRequest *)request forWebView:(UIWebView *)webView;
+- (BOOL)shouldHandleUrlRequest:(NSURLRequest *)request forWeb:(ZSHyWebViewController *)webViewController;
 
 /**
  *  Callback to webview with parameter for current operation
  *
- *  @param webView      webview
- *  @param operation    operation object
- *  @param parameters   parameter (JSON string is preferred)
- *  @param bSuccess     callback successful or failed
+ *  @param ZSHyWebViewController    webviewController
+ *  @param operation                operation object
+ *  @param parameters               parameter (JSON string is preferred)
+ *  @param bSuccess                 call successful or failed function in JS
  *
  *  @return Y or N if callback is acceptable
  */
-- (BOOL)callback2WebView:(UIWebView *)webView
-            forOperation:(ZSHyOperation *)operation
-        withParametersString:(NSString *)parameters
-                 successFlag:(BOOL)bSuccess;
+- (BOOL)callback2Web:(ZSHyWebViewController *)webViewController
+       withOperation:(ZSHyOperation *)operation
+    parametersString:(NSString *)parameters
+        successFlag:(BOOL)bSuccess;
 
 @end

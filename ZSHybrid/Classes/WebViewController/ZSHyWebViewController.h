@@ -7,6 +7,7 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <WebKit/WebKit.h>
 
 /*********************************************************************
  *
@@ -16,9 +17,9 @@
 
 @class ZSHyOperation;
 
-@interface ZSHyWebViewController : UIViewController <UIWebViewDelegate>
+@interface ZSHyWebViewController : UIViewController <WKUIDelegate, WKNavigationDelegate>
 
-@property (nonatomic, strong, readonly) UIWebView *webView;     // webview, use WKWebView in the future if it could post httpbody :)
+@property (nonatomic, strong, readonly) WKWebView *webView;     // webview, use WKWebView in the future if it could post httpbody :)
 
 /**
  *  Load url request
@@ -35,22 +36,11 @@
 - (void)loadURLString:(NSString *)urlString;
 
 /**
- *  Inject JavaScript script in webview
+ *  Evaluate JavaScript String in wkwebview
  *
- *  @param JSString script string
- *
- *  @return the script result string
+ *  @param JSString Java Script string
+ *  @param handler  evaluate result
  */
-- (NSString *)evaluateJSString:(NSString *)JSString;
+- (void)evaluateJSString:(NSString *)JSString withCompletionHandler:(void (^)(NSString *result))handler;
 
-/**
- *  Callback to webview from operation callback name
- *
- *  @param operation operation
- *  @param message   callback to web message/parameter (could use JSON string)
- #  @param bSuccess  callback for success or fail
- */
-- (void)invokeCallbackToWeb:(ZSHyOperation *)operation
-          withMessageString:(NSString *)message
-                successFlag:(BOOL)bSuccess;
 @end

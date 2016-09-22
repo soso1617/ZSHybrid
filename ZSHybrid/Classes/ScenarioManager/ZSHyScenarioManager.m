@@ -159,8 +159,20 @@ static NSMutableDictionary *_mDict = nil;
     //
     //  handle your operation if any
     //
-
     return retOperationAccepted;
+}
+
+/**
+
+ *  Callback to webview from operation callback name
+ *
+ *  @param operation operation
+ *  @param message   callback to web message/parameter (could use JSON string)
+ #  @param bSuccess  call successful or failed function in JS
+ */
+- (void)invokeCallbackToWeb:(ZSHyOperation *)operation withMessageString:(NSString *)message successFlag:(BOOL)bSuccess
+{
+    [[ZSHyOperationCenter defaultCenter] callback2Web:self.webViewController withOperation:operation parametersString:message successFlag:bSuccess];
 }
 
 #pragma mark - Private

@@ -87,7 +87,8 @@ static ZSHyOperationCenter *_defaultCenter = nil;
  *  @param operationsNames the exact operations names in array
  *  @param handler         the handler to handle the operations
  */
-- (void)registerOperation:(NSArray<NSString *> *)operationsNames fromHandler:(id<ZSHyOperationDelegate>)handler
+- (void)registerOperation:(NSArray<NSString *> *)operationsNames
+              fromHandler:(id<ZSHyOperationDelegate>)handler
 {
     if (nil != operationsNames && nil != handler)
     {
@@ -103,29 +104,37 @@ static ZSHyOperationCenter *_defaultCenter = nil;
 
 /**
  *  Determine whether any registered hybrid manager need to handle the url request
+ *  WebViewController will be responsible for invoke this method
  *
- *  @param request urlRequet
+ *  @param webViewController        webviewController
+ *  @param request                  urlRequet
  *
  *  @return Y or N of handling
  */
-- (BOOL)shouldHandleUrlRequest:(NSURLRequest *)request forWebView:(UIWebView *)webView
+- (BOOL)shouldHandleUrlRequest:(NSURLRequest *)request forWeb:(ZSHyWebViewController *)webViewController
 {
     BOOL bRet = NO;
     
-    ZSHyOperation *operation = [self operationFromURLRequest:request fromWebView:webView];
+    __block ZSHyOperation *operation = [self operationFromURLRequest:request fromWeb:webViewController withCompleteHandler:^
+    {
+        __strong ZSHyOperation *strongOperation = operation;
+        
+        //
+        // do the operation after parameter get
+        //
+        if ([strongOperation.operationHandler conformsToProtocol:@protocol(ZSHyOperationDelegate)])
+        {
+            [strongOperation.operationHandler handleOperation:strongOperation];
+        }
+    }];
     
+    //
+    //  return result before handler operates
+    //
     switch (operation.operationMode)
     {
         case OM_PROCESS:
         {
-            //
-            // do the operation
-            //
-            if ([operation.operationHandler conformsToProtocol:@protocol(ZSHyOperationDelegate)])
-            {
-                [operation.operationHandler handleOperation:operation];
-            }
-            
             bRet = YES;
             break;
         }
@@ -141,42 +150,19 @@ static ZSHyOperationCenter *_defaultCenter = nil;
 }
 
 /**
- *  Create ZSHyOperation object from URL request
- *
- *  @param request the redirect url request
- *
- *  @return ZSHyOperation object
- */
-- (ZSHyOperation *)operationFromURLRequest:(NSURLRequest *)request fromWebView:(UIWebView *)webView
-{
-    ZSHyOperation *retOperation = nil;
-    
-    if ([request.HTTPMethod isEqualToString:@"GET"])
-    {
-        retOperation = [self operationFromGetURLRequest:request fromWebView:webView];
-    }
-    else if ([request.HTTPMethod isEqualToString:@"POST"])
-    {
-        retOperation = [self operationFromPostURLRequest:request];
-    }
-    
-    return retOperation;
-}
-
-/**
  *  Callback to webview with parameter for current operation
  *
- *  @param webView      webview
- *  @param operation    operation object
- *  @param parameters   parameter (JSON string is preferred)
- *  @param bSuccess     callback successful or failed
+ *  @param ZSHyWebViewController    webviewController
+ *  @param operation                operation object
+ *  @param parameters               parameter (JSON string is preferred)
+ *  @param bSuccess                 call successful or failed function in JS
  *
  *  @return Y or N if callback is acceptable
  */
-- (BOOL)callback2WebView:(UIWebView *)webView
-            forOperation:(ZSHyOperation *)operation
-    withParametersString:(NSString *)parameters
-             successFlag:(BOOL)bSuccess
+- (BOOL)callback2Web:(ZSHyWebViewController *)webViewController
+       withOperation:(ZSHyOperation *)operation
+    parametersString:(NSString *)parameters
+         successFlag:(BOOL)bSuccess
 {
     BOOL bRet = NO;
     
@@ -187,10 +173,7 @@ static ZSHyOperationCenter *_defaultCenter = nil;
         //
         NSString *injectJS4Callback = [NSString stringWithFormat:CALLBACKJSFORMAT, operation.operationCallID, parameters, [NSNumber numberWithBool:bSuccess]];
         
-        //
-        //  delay 0.1 to end webview's alert runloop if exist
-        //
-        [webView performSelector:@selector(stringByEvaluatingJavaScriptFromString:) withObject:injectJS4Callback afterDelay:0.1];
+        [webViewController evaluateJSString:injectJS4Callback withCompletionHandler:nil];
     }
     
     return bRet;
@@ -199,13 +182,41 @@ static ZSHyOperationCenter *_defaultCenter = nil;
 #pragma mark - Private Method
 
 /**
- *  Create ZSHyOperation object from Post URL request
+ *  Create ZSHyOperation object from URL request
  *
- *  @param request the redirect url request
+ *  @param request              the redirect url request
+ *  @param webViewController    webViewController
+ *  @param handler              the handler to handle the process after operation object completed retrieved
  *
  *  @return ZSHyOperation object
  */
-- (ZSHyOperation *)operationFromPostURLRequest:(NSURLRequest *)request
+- (ZSHyOperation *)operationFromURLRequest:(NSURLRequest *)request
+                                   fromWeb:(ZSHyWebViewController *)webViewController
+                       withCompleteHandler:(void (^)(void))handler
+{
+    ZSHyOperation *retOperation = nil;
+    
+    if ([request.HTTPMethod isEqualToString:@"GET"])
+    {
+        retOperation = [self operationFromGetURLRequest:request fromWeb:webViewController withCompleteHandler:handler];
+    }
+    else if ([request.HTTPMethod isEqualToString:@"POST"])
+    {
+        retOperation = [self operationFromPostURLRequest:request withHandler:handler];
+    }
+    
+    return retOperation;
+}
+
+/**
+ *  Create ZSHyOperation object from Post URL request
+ *
+ *  @param request the redirect url request
+ *  @param handler the handler to handle the process after operation object completed retrieved
+ *
+ *  @return ZSHyOperation object
+ */
+- (ZSHyOperation *)operationFromPostURLRequest:(NSURLRequest *)request withHandler:(void (^)(void))handler
 {
     ZSHyOperation *retOperation = [[ZSHyOperation alloc] init];
     retOperation.operationRequest = request;
@@ -254,10 +265,14 @@ static ZSHyOperationCenter *_defaultCenter = nil;
  *  Create ZSHyOperation object from URL request, will use JavaScript to fetch parameters
  *
  *  @param request the redirect url request
+ *  @param request the webviewcontroller
+ *  @param handler the handler to handle the process after operation object completed retrieved
  *
  *  @return ZSHyOperation object
  */
-- (ZSHyOperation *)operationFromGetURLRequest:(NSURLRequest *)request fromWebView:(UIWebView *)webView
+- (ZSHyOperation *)operationFromGetURLRequest:(NSURLRequest *)request
+                                      fromWeb:(ZSHyWebViewController *)webViewController
+                          withCompleteHandler:(void (^)(void))handler
 {
     ZSHyOperation *retOperation = [[ZSHyOperation alloc] init];
     retOperation.operationRequest = request;
@@ -279,7 +294,7 @@ static ZSHyOperationCenter *_defaultCenter = nil;
             //
             //  get parameter and callback name
             //
-            [self fetchParameterThroughJavaScript:request.URL.query fromWebView:webView forOperation:&retOperation];
+            [self fetchParameterThroughJavaScript:request.URL.query fromWebViewController:webViewController forOperation:&retOperation withHanlder:handler];
         }
         //
         //  if host name not hit, we need to check the whole url
@@ -309,13 +324,15 @@ static ZSHyOperationCenter *_defaultCenter = nil;
 /**
  *  Parse url query, and fetch parameter through JavaScript
  *
- *  @param urlQuery  url query
- *  @param webView   web view
- *  @param operation output operation
+ *  @param urlQuery             url query
+ *  @param webViewController    webViewController
+ *  @param operation            output operation
+ *  @param handler              the handler to handle the process after operation object completed retrieved
  */
 - (void)fetchParameterThroughJavaScript:(NSString *)urlQuery
-                            fromWebView:(UIWebView *)webView
+                  fromWebViewController:(ZSHyWebViewController *)webViewController
                            forOperation:(ZSHyOperation **)operation
+                            withHanlder:(void (^)(void))handler
 {
     if (nil != urlQuery)
     {
@@ -332,12 +349,22 @@ static ZSHyOperationCenter *_defaultCenter = nil;
             //
             NSString *injectJS4Parameter = [NSString stringWithFormat:FETECHJSFORMAT, callID];
             
-            //
-            //  JSON string or just like form submit?
-            //
-            NSString *parameterString = [webView stringByEvaluatingJavaScriptFromString:injectJS4Parameter];
+            __weak ZSHyOperation *weakOperation = *operation;
             
-            (*operation).operationParameters = [self parseDataString2Dictionary:parameterString];
+            [webViewController evaluateJSString:injectJS4Parameter withCompletionHandler:^(NSString *result)
+            {
+                __strong ZSHyOperation *strongOperation = weakOperation;
+                
+                //
+                //  JSON string or just like form submit?
+                //
+                (strongOperation).operationParameters = [self parseDataString2Dictionary:result];
+                
+                if (nil != handler)
+                {
+                    handler();
+                }
+            }];
         }
     }
 }

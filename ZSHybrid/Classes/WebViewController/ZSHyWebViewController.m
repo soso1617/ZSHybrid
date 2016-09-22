@@ -17,7 +17,7 @@
 
 @interface ZSHyWebViewController ()
 
-@property (nonatomic, strong) UIWebView *webView;
+@property (nonatomic, strong) WKWebView *webView;
 @property (nonatomic) BOOL bShowIndicator;
 
 @end
@@ -37,9 +37,9 @@
     
     if (self)
     {
-        _webView = [[UIWebView alloc] init];
-        _webView.delegate = self;
-        _webView.scalesPageToFit = YES;
+        _webView = [[WKWebView alloc] init];
+        _webView.UIDelegate = self;
+        _webView.navigationDelegate = self;
     }
     
     return self;
@@ -85,45 +85,56 @@
 }
 
 /**
- *  Inject JavaScript script in webview
+ *  Evaluate JavaScript String in wkwebview
  *
- *  @param JSString script string
+ *  @param JSString Java Script string
+ *  @param handler  evaluate result
  */
-
-/**
- *  Inject JavaScript script in webview
- *
- *  @param JSString script string
- *
- *  @return the script result string
- */
-- (NSString *)evaluateJSString:(NSString *)JSString
+- (void)evaluateJSString:(NSString *)JSString withCompletionHandler:(void (^)(NSString *result))handler
 {
-    return [self.webView stringByEvaluatingJavaScriptFromString:JSString];
+    //
+    //  delay 0.1 to end webview's alert runloop if exist
+    //
+    double delayInSeconds = 0.1;
+    dispatch_time_t popTime = dispatch_time(DISPATCH_TIME_NOW, (int64_t)(delayInSeconds * NSEC_PER_SEC));
+    dispatch_after(popTime, dispatch_get_main_queue(), ^(void)
+    {
+       [self.webView evaluateJavaScript:JSString completionHandler:^(id _Nullable retValue, NSError * _Nullable error)
+        {
+            if (nil != handler)
+            {
+                handler(retValue);
+            }
+        }];
+    });
 }
 
-/**
- *  Callback to webview from operation callback name
- *
- *  @param operation operation
- *  @param message   callback to web message/parameter (could use JSON string)
- #  @param bSuccess  callback for success or fail
- */
-- (void)invokeCallbackToWeb:(ZSHyOperation *)operation withMessageString:(NSString *)message successFlag:(BOOL)bSuccess
-{
-    [[ZSHyOperationCenter defaultCenter] callback2WebView:self.webView forOperation:operation withParametersString:message successFlag:bSuccess];
-}
-
-#pragma mark - UIWebView delegate Method
+#pragma mark - WKWebView delegate Method
 
 /**
- *  UIWebView delegate method, each hybrid function could contains it's own url process logic, so each sub-class could override this method, but don't forget to invoke super method to ensure the standard process
+ *  WKWebView delegate method, each hybrid function could contains it's own url process logic, so each sub-class could override this method, but don't forget to invoke super method to ensure the standard process
  */
-- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
+- (void)webView:(WKWebView *)webView decidePolicyForNavigationAction:(WKNavigationAction *)navigationAction decisionHandler:(void (^)(WKNavigationActionPolicy))decisionHandler
 {
-    BOOL bRet = ![[ZSHyOperationCenter defaultCenter] shouldHandleUrlRequest:request forWebView:webView];
+    BOOL bRet = ![[ZSHyOperationCenter defaultCenter] shouldHandleUrlRequest:navigationAction.request forWeb:self];
     
-    return bRet;
+    decisionHandler(bRet ? WKNavigationActionPolicyAllow : WKNavigationActionPolicyCancel);
+}
+
+- (void)webView:(WKWebView *)webView runJavaScriptAlertPanelWithMessage:(NSString *)message initiatedByFrame:(WKFrameInfo *)frame completionHandler:(void (^)(void))completionHandler
+{
+    UIAlertController *alertController = [UIAlertController alertControllerWithTitle:message
+                                                                             message:nil
+                                                                      preferredStyle:UIAlertControllerStyleAlert];
+    
+    [alertController addAction:[UIAlertAction actionWithTitle:@"OK"
+                                                        style:UIAlertActionStyleCancel
+                                                      handler:^(UIAlertAction *action)
+                                                            {
+                                                                completionHandler();
+                                                            }]];
+    
+    [self presentViewController:alertController animated:YES completion:nil];
 }
 
 /*

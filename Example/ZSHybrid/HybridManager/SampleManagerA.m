@@ -30,6 +30,18 @@
     return @[RegisterOperationNameA, RegisterOperationNameB];
 }
 
+- (void)loadScenarioFromViewController:(UIViewController *)viewController openMode:(ScenarioOpenMode)mode
+{
+    [super loadScenarioFromViewController:viewController openMode:mode];
+    
+    //
+    //  override load local page, since wkwebview doesn't support loadRequest from local
+    //
+    NSString *filePath = [NSString stringWithFormat:@"file://%@", self.webPageURLString];
+    
+    [self.webViewController.webView loadFileURL:[NSURL URLWithString:filePath] allowingReadAccessToURL:[NSURL URLWithString:filePath.stringByDeletingLastPathComponent]];
+}
+
 - (BOOL)handleOperation:(ZSHyOperation *)operation
 {
     if ([operation.operationName isEqualToString:RegisterOperationNameA])
@@ -37,7 +49,10 @@
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Hybrid" message:operation.operationParameters[@"value"] preferredStyle:UIAlertControllerStyleAlert];
         [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
                                     {
-                                        [self.webViewController invokeCallbackToWeb:operation withMessageString:@"Hello sample" successFlag:YES];
+                                        //
+                                        //  callback to webview
+                                        //
+                                        [self invokeCallbackToWeb:operation withMessageString:@"Hello sample" successFlag:YES];
                                     }]];
         
         [self.webViewController presentViewController:alertController animated:YES completion:nil];
@@ -48,7 +63,10 @@
         UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Hybrid" message:operation.operationParameters[@"value"] preferredStyle:UIAlertControllerStyleAlert];
         [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
                                     {
-                                        [self.webViewController invokeCallbackToWeb:operation withMessageString:@"find me" successFlag:NO];
+                                        //
+                                        //  callback to webview
+                                        //
+                                        [self invokeCallbackToWeb:operation withMessageString:@"Failed" successFlag:NO];
                                     }]];
         [self.webViewController presentViewController:alertController animated:YES completion:nil];
     }

@@ -36,12 +36,12 @@
             
         function callNativeA()
         {
-            zshybrid.invokeMobileWithCallbackFunctions("InterfaceA", "value=openA", successfulCallback, failedCallback);
+            zshybrid.invokeMobileWithCallbackFunctions("InterfaceA", "{\"value\":\"openA\"}", true, successfulCallback, failedCallback);
         }
 
         function callNativeB()
         {
-            zshybrid.invokeMobileWithCallbackFunctions("InterfaceB", "value=openB", function(str){alert("successfulCallback" + str);}, function(str){alert("failedCallback" + str);});
+            zshybrid.invokeMobileWithCallbackFunctions("InterfaceB", "value=openB", false, function(str){alert("successfulCallback" + str);}, function(str){alert("failedCallback" + str);});
         }
         
         </script>

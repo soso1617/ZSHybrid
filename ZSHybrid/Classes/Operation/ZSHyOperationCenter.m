@@ -10,6 +10,7 @@
 #import "ZSHyScenarioManager.h"
 
 #define CALLID                      @"callID"
+#define ISJSON                      @"isJSON"
 #define FETECHJSFORMAT              @"zshybrid.fetchParameter(\"%@\")"  // callID
 #define CALLBACKJSFORMAT            @"zshybrid.callbackFromMobile(\"%@\", \"%@\", %@)"  // callID, parameters, successflag
 
@@ -339,6 +340,7 @@ static ZSHyOperationCenter *_defaultCenter = nil;
         NSDictionary *queryDictionary = [self parseDataString2Dictionary:urlQuery];
         
         NSString *callID = queryDictionary[CALLID];
+        BOOL isJSON = [queryDictionary[ISJSON] boolValue];
         
         if (nil != callID)
         {
@@ -354,11 +356,11 @@ static ZSHyOperationCenter *_defaultCenter = nil;
             [webViewController evaluateJSString:injectJS4Parameter withCompletionHandler:^(NSString *result)
             {
                 __strong ZSHyOperation *strongOperation = weakOperation;
-                
+
                 //
-                //  JSON string or just like form submit?
+                //  JSON string or post form sting?
                 //
-                (strongOperation).operationParameters = [self parseDataString2Dictionary:result];
+                strongOperation.operationParameters = isJSON ? [self parseJSONString:result] : [self parseDataString2Dictionary:result];
                 
                 if (nil != handler)
                 {
@@ -387,6 +389,35 @@ static ZSHyOperationCenter *_defaultCenter = nil;
     }
     
     return retDictionary;
+}
+
+/**
+ *  Parse the JSON String from server side
+ *
+ *  @param JSONString the JSON string
+ *
+ *  @return dictionary or array
+ */
+- (NSObject *)parseJSONString:(NSString *)JSONString
+{
+    NSObject *retObject = nil;
+    
+    if (nil != JSONString)
+    {
+        NSError *jsonError;
+        NSData *objectData = [JSONString dataUsingEncoding:NSUTF8StringEncoding];
+        
+        retObject = [NSJSONSerialization JSONObjectWithData:objectData
+                                                    options:NSJSONReadingMutableContainers
+                                                      error:&jsonError];
+        
+        if (nil != jsonError)
+        {
+            NSLog(@"Parse JSON string error %@", jsonError);
+        }
+    }
+    
+    return retObject;
 }
 
 /**

@@ -70,8 +70,9 @@ var zshybrid = zshybrid || {};
 
     //
     //  invoke native interface
+    //  if pass JSON string, please set isJSON to true, if pass post form string, please set isJSON to false
     //
-    this.invokeMobileWithCallbackFunctions = function(mobileFunctionName, parameter, sCallback, fCallback)
+    this.invokeMobileWithCallbackFunctions = function(mobileFunctionName, parameter, isJSON, sCallback, fCallback)
     {
         if(mobileFunctionName)
         {
@@ -96,7 +97,7 @@ var zshybrid = zshybrid || {};
 
             hybridCalls[callID] = oneCall;
 
-            var url = hybridScheme + "://"+ mobileFunctionName + "/?callID=" + callID;
+            var url = hybridScheme + "://"+ mobileFunctionName + "/?callID=" + callID + "&isJSON=" + (isJSON ? 1 : 0);
 
             window.open(url, "_self");
         }

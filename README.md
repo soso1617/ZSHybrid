@@ -20,6 +20,39 @@ it, simply add the following line to your Podfile:
 pod 'ZSHybrid', :git => 'git@github.com:soso1617/ZSHybrid.git'
 ```
 
+## Usage
+
+### iOS
+
+ZSHyScenarioManager
+
+Create your won scenario wich inherited from ZSHyScenarioManager, implement [Title] and [webPageURLString]. After that, you could call [loadScenarioFromViewController:openMode:] directly to open a webview with viewcontroller from your views.
+
+ZSHyOperationDelegate
+
+Once you have created your own scenario manager, you need to confirm this protocol for receive message and handle it from webview. Override [registerOperationsNames] to provide a bunch of [command names] which you want to handle from webview. Override [handleOperation:] to handle the operation from webview with parameters.
+
+ZSHyOperation
+
+The ZSHyOperation object contains the information from webview, and you could get parameters from it as well. And when you need send message back to webview, you need to send this object back as well. Please see the class "SampleManagerA" for more details.
+
+### JavaScript (ZSHybrid.js)
+
+Any webview need to implement hybrid solution need to ref this JS file. It provide very simple interfaces for web page to send and receive message with mobile native client. There is only one interface for web page: invokeMobileWithCallbackFunctions(...), send your [command name] (which should be registered in "ZSHyOperationDelegate" method), parameters (you can send both JSON string and post form string to mobile native client with isJSON flag), and successful callback and failed callback to handle the next steps after received callback string from mobile native client.
+
+### Register URL Scheme
+
+Another important thing is that you may need to set your own scheme for url interception. You could have multi-schemes to interception in one application if you need at any time. And for each web page, you could set corresponding scheme as well.
+
+```objc
+[[ZSHyOperationCenter defaultCenter] registerHybridScheme:@[@"hybridsample"]];
+```
+
+```js
+zshybrid.registerSchemeForApplication("hybridsample");
+```
+
+
 ## Author
 
 SoSo, eric_roger1137@hotmail.com

@@ -38,13 +38,12 @@
 
 @end
 
-typedef enum ScenarioOpenMode
+typedef NS_ENUM(NSUInteger, ScenarioOpenMode)
 {
     SOM_Present,
     SOM_Push,
     SOM_Default = SOM_Present
-}
-ScenarioOpenMode;
+};
 
 @interface ZSHyScenarioManager : NSObject <ZSHyScenarioDelegate, ZSHyOperationDelegate>
 

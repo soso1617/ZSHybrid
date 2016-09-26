@@ -12,12 +12,12 @@
 /**
  Enum to describe the operation mode from url redirect
  */
-typedef enum : NSUInteger
+typedef NS_ENUM(NSUInteger, OperationMode)
 {
     OM_REDIRECT,
     OM_PROCESS,
     OM_UNKNOW = OM_REDIRECT,
-}OperationMode;
+};
 
 /*********************************************************************
  *

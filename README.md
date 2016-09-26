@@ -5,6 +5,8 @@
 [![License](https://img.shields.io/cocoapods/l/ZSHybrid.svg?style=flat)](http://cocoapods.org/pods/ZSHybrid)
 [![Platform](https://img.shields.io/cocoapods/p/ZSHybrid.svg?style=flat)](http://cocoapods.org/pods/ZSHybrid)
 
+A lightweight hybrid framework. Simplified to integrate in every iOS project with little efforts, no anyother dependencies, please enjoy!
+
 ## Example
 
 To run the example project, clone the repo, and run `pod install` from the Example directory first.
@@ -39,6 +41,8 @@ The ZSHyOperation object contains the information from webview, and you could ge
 ### JavaScript (ZSHybrid.js)
 
 Any webview need to implement hybrid solution need to ref this JS file. It provide very simple interfaces for web page to send and receive message with mobile native client. There is only one interface for web page: invokeMobileWithCallbackFunctions(...), send your [command name] (which should be registered in "ZSHyOperationDelegate" method), parameters (you can send both JSON string and post form string to mobile native client with isJSON flag), and successful callback and failed callback to handle the next steps after received callback string from mobile native client.
+
+Please find ZSHybrid.js in example code additionally, the js file haven't been provided in pod framework yet.
 
 ### Register URL Scheme
 

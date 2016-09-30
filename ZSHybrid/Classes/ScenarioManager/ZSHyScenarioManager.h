@@ -69,11 +69,19 @@ typedef NS_ENUM(NSUInteger, ScenarioOpenMode)
  *  Load secnario and present scenarios view with open mode
  *
  *  @param viewController The view controller to open scencario
- *  @param mode           ScenarioOpenMode, if using Push mode, the viewController should be contained 
+ *  @param mode           ScenarioOpenMode, if using Push mode, the viewController should be contained
  *                        in a navigationViewController.
  *                        Otherwise, you should prepare the close button for presenting mode.
+ &  @param completion     Caller could define what's next if this scenario is finish
  */
-- (void)loadScenarioFromViewController:(UIViewController *)viewController openMode:(ScenarioOpenMode)mode;
+- (void)loadScenarioFromViewController:(UIViewController *)viewController
+                              openMode:(ScenarioOpenMode)mode
+                            completion:(void (^)())completion;
+
+/**
+ *  End current scenario and dismiss/pop web view, if completion was set when loading, will invoke completion
+ */
+- (void)endCurrentScenario;
 
 /**
  *  Callback to webview from operation callback name

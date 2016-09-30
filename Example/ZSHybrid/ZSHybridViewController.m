@@ -29,7 +29,7 @@
     //  create scenario manager and load web page
     //
     SampleManagerA *managerA = [SampleManagerA sharedManager];
-    [managerA loadScenarioFromViewController:self openMode:SOM_Push];
+    [managerA loadScenarioFromViewController:self openMode:SOM_Push completion:nil];
 }
 
 - (void)didReceiveMemoryWarning

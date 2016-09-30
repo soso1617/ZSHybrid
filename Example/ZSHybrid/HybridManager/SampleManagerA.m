@@ -30,9 +30,11 @@
     return @[RegisterOperationNameA, RegisterOperationNameB];
 }
 
-- (void)loadScenarioFromViewController:(UIViewController *)viewController openMode:(ScenarioOpenMode)mode
+- (void)loadScenarioFromViewController:(UIViewController *)viewController
+                              openMode:(ScenarioOpenMode)mode
+                            completion:(void (^)())completion
 {
-    [super loadScenarioFromViewController:viewController openMode:mode];
+    [super loadScenarioFromViewController:viewController openMode:mode completion:completion];
     
     //
     //  override load local page, since wkwebview doesn't support loadRequest from local

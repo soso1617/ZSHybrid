@@ -19,6 +19,8 @@
 @interface ZSHyScenarioManager ()
 
 @property (nonatomic, strong) ZSHyWebViewController *webViewController;
+@property (nonatomic, copy) void (^compeletionBlock)(void);
+@property (nonatomic) ScenarioOpenMode openMode;
 
 @end
 
@@ -112,9 +114,18 @@ static NSMutableDictionary *_mDict = nil;
  *  @param mode           ScenarioOpenMode, if using Push mode, the viewController should be contained
  *                        in a navigationViewController.
  *                        Otherwise, you should prepare the close button for presenting mode.
+ &  @param completion     Caller could define what's next if this scenario is finish
  */
-- (void)loadScenarioFromViewController:(UIViewController *)viewController openMode:(ScenarioOpenMode)mode
+- (void)loadScenarioFromViewController:(UIViewController *)viewController
+                              openMode:(ScenarioOpenMode)mode
+                            completion:(void (^)())completion
 {
+    //
+    //  store this for completion
+    //
+    self.openMode = mode;
+    self.compeletionBlock = completion;
+    
     //
     //  register operations for this manager to handle, every time the manager is being used
     //
@@ -129,6 +140,27 @@ static NSMutableDictionary *_mDict = nil;
     //  load url
     //
     [self.webViewController loadURLString:self.webPageURLString];
+}
+
+/**
+ *  End current scenario and dismiss/pop web view, if completion was set when loading, will invoke completion
+ */
+- (void)endCurrentScenario
+{
+    [self close];
+}
+
+/**
+ 
+ *  Callback to webview from operation callback name
+ *
+ *  @param operation operation
+ *  @param message   callback to web message/parameter (could use JSON string)
+ #  @param bSuccess  call successful or failed function in JS
+ */
+- (void)invokeCallbackToWeb:(ZSHyOperation *)operation withMessageString:(NSString *)message successFlag:(BOOL)bSuccess
+{
+    [[ZSHyOperationCenter defaultCenter] callback2Web:self.webViewController withOperation:operation parametersString:message successFlag:bSuccess];
 }
 
 #pragma mark - Operation delegate method
@@ -160,19 +192,6 @@ static NSMutableDictionary *_mDict = nil;
     //  handle your operation if any
     //
     return retOperationAccepted;
-}
-
-/**
-
- *  Callback to webview from operation callback name
- *
- *  @param operation operation
- *  @param message   callback to web message/parameter (could use JSON string)
- #  @param bSuccess  call successful or failed function in JS
- */
-- (void)invokeCallbackToWeb:(ZSHyOperation *)operation withMessageString:(NSString *)message successFlag:(BOOL)bSuccess
-{
-    [[ZSHyOperationCenter defaultCenter] callback2Web:self.webViewController withOperation:operation parametersString:message successFlag:bSuccess];
 }
 
 #pragma mark - Private
@@ -235,6 +254,52 @@ static NSMutableDictionary *_mDict = nil;
             //  present view controller
             //
             [onVC presentViewController:self.webViewController animated:YES completion:nil];
+            break;
+        }
+    }
+}
+
+/**
+ *  Dismiss or pop view
+ */
+- (void)close
+{
+    switch (self.openMode)
+    {
+        case SOM_Push:
+        {
+            //
+            //  push view controller
+            //
+            [self.webViewController.navigationController popViewControllerAnimated:YES];
+            
+            //
+            //  call completion
+            //
+            if (nil != self.compeletionBlock)
+            {
+                self.compeletionBlock();
+            }
+            
+            break;
+        }
+        case SOM_Present:
+        default:
+        {
+            //
+            //  present view controller
+            //
+            [self.webViewController dismissViewControllerAnimated:YES completion:^
+             {
+                 //
+                 //  call completion
+                 //
+                 if (nil != self.compeletionBlock)
+                 {
+                     self.compeletionBlock();
+                 }
+             }];
+            
             break;
         }
     }

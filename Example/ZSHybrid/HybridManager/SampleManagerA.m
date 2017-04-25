@@ -48,7 +48,7 @@
 {
     if ([operation.operationName isEqualToString:RegisterOperationNameA])
     {
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Hybrid" message:operation.operationParameters[@"value"] preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Hybrid" message:operation.operationDictParameters[@"value"] preferredStyle:UIAlertControllerStyleAlert];
         [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
                                     {
                                         //
@@ -62,7 +62,7 @@
     else if ([operation.operationName isEqualToString:RegisterOperationNameB])
     {
         
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Hybrid" message:operation.operationParameters[@"value"] preferredStyle:UIAlertControllerStyleAlert];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:@"Hybrid" message:operation.operationDictParameters[@"value"] preferredStyle:UIAlertControllerStyleAlert];
         [alertController addAction:[UIAlertAction actionWithTitle:@"OK" style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action)
                                     {
                                         //

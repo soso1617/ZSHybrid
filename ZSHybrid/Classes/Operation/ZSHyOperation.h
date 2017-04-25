@@ -29,7 +29,8 @@ typedef NS_ENUM(NSUInteger, OperationMode)
 
 @property (nonatomic) OperationMode operationMode;    // operation enum, default is HO_REDIRECT
 @property (nonatomic, copy) NSString *operationName;    // the operation name
-@property (nonatomic, strong) NSDictionary *operationParameters;    // dictionary contains the value which operation may need, could be nil
+@property (nonatomic, strong) NSDictionary *operationDictParameters;    // dictionary contains the value which operation may need, could be nil, normally we use this parameter rather than operationObjectParameters if web side returns dict
+@property (nonatomic, strong) NSObject *operationObjectParameters;    // normally it's an array contains the value which operation may need, could be nil
 @property (nonatomic, strong) NSURLRequest *operationRequest;   // if object is created from url request, this property can retain that value
 @property (nonatomic, weak) id<ZSHyOperationDelegate> operationHandler;   // the manager to handle this operation
 @property (nonatomic, copy) NSString *operationCallID;    // the callID for this operation, this callID is the identifier for each web-native call

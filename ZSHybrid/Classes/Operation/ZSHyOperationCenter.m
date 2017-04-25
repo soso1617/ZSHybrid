@@ -234,7 +234,7 @@ static ZSHyOperationCenter *_defaultCenter = nil;
         {
             retOperation.operationName = host;
             retOperation.operationMode = OM_PROCESS;
-            retOperation.operationParameters = [self parseHttpPostData:request.HTTPBody];
+            retOperation.operationDictParameters = [self parseHttpPostData:request.HTTPBody];
             retOperation.operationHandler = self.registeredOperationsManagersDictionary[host];
         }
         //
@@ -250,7 +250,7 @@ static ZSHyOperationCenter *_defaultCenter = nil;
                 {
                     retOperation.operationName = key;
                     retOperation.operationMode = OM_PROCESS;
-                    retOperation.operationParameters = [self parseHttpPostData:request.HTTPBody];
+                    retOperation.operationDictParameters = [self parseHttpPostData:request.HTTPBody];
                     retOperation.operationHandler = self.registeredOperationsManagersDictionary[key];
                     
                     break;
@@ -310,7 +310,6 @@ static ZSHyOperationCenter *_defaultCenter = nil;
                 {
                     retOperation.operationName = key;
                     retOperation.operationMode = OM_PROCESS;
-                    retOperation.operationParameters = nil;
                     retOperation.operationHandler = self.registeredOperationsManagersDictionary[key];
                     
                     break;
@@ -356,11 +355,27 @@ static ZSHyOperationCenter *_defaultCenter = nil;
             [webViewController evaluateJSString:injectJS4Parameter withCompletionHandler:^(NSString *result)
             {
                 __strong ZSHyOperation *strongOperation = weakOperation;
-
+                
                 //
-                //  JSON string or post form sting?
+                //  JSON string or post form string?
                 //
-                strongOperation.operationParameters = isJSON ? [self parseJSONString:result] : [self parseDataString2Dictionary:result];
+                if (isJSON)
+                {
+                    NSObject *obj = [self parseJSONString:result];
+                    
+                    if (nil != obj && [obj isKindOfClass:[NSDictionary class]])
+                    {
+                        strongOperation.operationDictParameters = (NSDictionary *)obj;
+                    }
+                    else
+                    {
+                        strongOperation.operationObjectParameters = obj;
+                    }
+                }
+                else
+                {
+                    strongOperation.operationDictParameters = [self parseDataString2Dictionary:result];
+                }
                 
                 if (nil != handler)
                 {
